@@ -2,15 +2,15 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
-import { Plus, Minus, Star, Info, ShoppingBag } from "lucide-react";
-import { useCart } from "@/store/cartContext";
+import { Plus, Minus, Star, Info, ShoppingBag, MessageCircle } from "lucide-react";
 import { DishModal } from "./DishModal";
+import { buildWhatsAppOrderLink } from "@/lib/whatsapp";
 
 export interface Dish {
   id: string;
   name: string;
   slug: string;
-  description: string;
+  description: string | null;
   price: number;
   isVariablePrice?: boolean;
   priceNote?: string | null;
@@ -25,23 +25,20 @@ interface DishCardProps {
 }
 
 export const DishCard: React.FC<DishCardProps> = ({ dish }) => {
-  const { addItem } = useCart();
   const [quantity, setQuantity] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const handleAddToCart = (e: React.MouseEvent) => {
+  const handleOrderViaWhatsApp = (e: React.MouseEvent) => {
     e.stopPropagation();
-    addItem(
+    const link = buildWhatsAppOrderLink([
       {
-        id: dish.id,
         name: dish.name,
+        quantity,
         price: dish.price,
-        imageUrl: dish.imageUrl,
-        isVariablePrice: dish.isVariablePrice,
-        priceNote: dish.priceNote,
+        note: dish.priceNote,
       },
-      quantity
-    );
+    ]);
+    window.open(link, "_blank", "noopener,noreferrer");
   };
 
   return (
@@ -91,7 +88,7 @@ export const DishCard: React.FC<DishCardProps> = ({ dish }) => {
               {dish.name}
             </h3>
             <p className="text-xs text-gray-300 mt-1 line-clamp-2 leading-relaxed">
-              {dish.description}
+              {dish.description ?? "Aucune description disponible."}
             </p>
           </div>
 
@@ -130,11 +127,11 @@ export const DishCard: React.FC<DishCardProps> = ({ dish }) => {
                 </div>
 
                 <button
-                  onClick={handleAddToCart}
+                  onClick={handleOrderViaWhatsApp}
                   className="px-3 py-2 rounded-xl bg-jardin-orange hover:bg-jardin-orange-hover text-white text-xs font-bold flex items-center gap-1.5 shadow-md shadow-jardin-orange/20 transition"
                 >
-                  <ShoppingBag className="w-3.5 h-3.5" />
-                  <span>Ajouter</span>
+                  <MessageCircle className="w-3.5 h-3.5" />
+                  <span>Commander</span>
                 </button>
               </div>
             )}

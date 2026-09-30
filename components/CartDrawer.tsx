@@ -2,9 +2,10 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
-import { X, Trash2, Plus, Minus, ShoppingBag, ArrowRight, Truck, Store, Utensils } from "lucide-react";
+import { X, Trash2, Plus, Minus, ShoppingBag, ArrowRight, Truck, Store, Utensils, MessageCircle, Phone } from "lucide-react";
 import { useCart, DeliveryType } from "@/store/cartContext";
 import { CheckoutModal } from "./CheckoutModal";
+import { buildWhatsAppOrderLink } from "@/lib/whatsapp";
 
 export const CartDrawer: React.FC = () => {
   const {
@@ -205,13 +206,31 @@ export const CartDrawer: React.FC = () => {
                 </div>
               </div>
 
-              <button
-                onClick={() => setIsCheckoutOpen(true)}
+              <a
+                href={buildWhatsAppOrderLink(
+                  items.map((item) => ({
+                    name: item.name,
+                    quantity: item.quantity,
+                    price: item.price,
+                    note: item.priceNote,
+                  })),
+                  { deliveryType }
+                )}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="w-full py-3 rounded-xl bg-gradient-to-r from-jardin-orange to-amber-600 hover:from-jardin-orange-hover hover:to-amber-500 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-jardin-orange/25 transition"
               >
-                <span>Passer la commande</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
+                <MessageCircle className="w-4 h-4" />
+                <span>Commander sur WhatsApp</span>
+              </a>
+
+              <a
+                href="tel:+242055245386"
+                className="w-full py-2.5 rounded-xl bg-jardin-surface hover:bg-jardin-card text-white font-medium text-sm flex items-center justify-center gap-2 border border-jardin-border transition"
+              >
+                <Phone className="w-4 h-4 text-jardin-orange" />
+                <span>Appeler le restaurant</span>
+              </a>
 
               <button
                 onClick={clearCart}

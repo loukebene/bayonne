@@ -17,18 +17,10 @@ import {
   Users,
   CheckCircle2,
 } from "lucide-react";
-import { prisma } from "@/lib/prisma";
+import { popularDishes } from "@/lib/menu";
 import { DishCard } from "@/components/DishCard";
 
-export const revalidate = 0; // Fresh data on each load
-
-export default async function HomePage() {
-  const popularDishes = await prisma.dish.findMany({
-    where: { isPopular: true, isAvailable: true },
-    take: 6,
-    include: { category: true },
-  });
-
+export default function HomePage() {
   return (
     <div className="space-y-16 pb-12">
       {/* HERO SECTION */}

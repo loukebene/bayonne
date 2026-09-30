@@ -30,7 +30,7 @@ export const MenuClient: React.FC<MenuClientProps> = ({ categories, initialDishe
       const matchesQuery =
         !q ||
         dish.name.toLowerCase().includes(q) ||
-        dish.description.toLowerCase().includes(q);
+        (dish.description ?? "").toLowerCase().includes(q);
 
       return matchesCategory && matchesQuery;
     });

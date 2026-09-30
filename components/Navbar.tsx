@@ -3,12 +3,10 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ShoppingBag, Phone, UtensilsCrossed, Calendar, ShieldCheck, MessageCircle } from "lucide-react";
-import { useCart } from "@/store/cartContext";
+import { Phone, UtensilsCrossed, Calendar, MessageCircle } from "lucide-react";
 
 export const Navbar: React.FC = () => {
   const pathname = usePathname();
-  const { itemCount, setIsCartOpen } = useCart();
 
   const navLinks = [
     { name: "Accueil", href: "/" },
@@ -38,14 +36,6 @@ export const Navbar: React.FC = () => {
             <Phone className="w-3 h-3 text-jardin-orange" />
             +242 05 524 53 86
           </a>
-          <span className="text-gray-600">|</span>
-          <Link
-            href="/admin/login"
-            className="hover:text-amber-400 text-gray-400 text-xs flex items-center gap-1 transition"
-          >
-            <ShieldCheck className="w-3 h-3" />
-            Espace Admin
-          </Link>
         </div>
       </div>
 
@@ -88,7 +78,6 @@ export const Navbar: React.FC = () => {
 
         {/* Right CTA Actions */}
         <div className="flex items-center space-x-3">
-          {/* WhatsApp Direct */}
           <a
             href="https://wa.me/242055245386?text=Bonjour%20Le%20Jardin%20de%20Bayonne,%20je%20souhaite%20commander%20ou%20reserver"
             target="_blank"
@@ -96,23 +85,17 @@ export const Navbar: React.FC = () => {
             className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold bg-emerald-600/90 hover:bg-emerald-500 text-white transition shadow-sm"
           >
             <MessageCircle className="w-4 h-4" />
-            WhatsApp
+            Commander
           </a>
 
-          {/* Cart Button */}
-          <button
-            onClick={() => setIsCartOpen(true)}
+          <a
+            href="tel:+242055245386"
             className="relative px-3.5 py-2 rounded-xl bg-jardin-surface border border-jardin-border hover:border-jardin-orange text-white flex items-center gap-2 transition group shadow-md"
-            aria-label="Ouvrir le panier"
+            aria-label="Appeler le restaurant"
           >
-            <ShoppingBag className="w-5 h-5 text-jardin-orange group-hover:scale-110 transition" />
-            <span className="hidden sm:inline font-medium text-sm">Panier</span>
-            {itemCount > 0 && (
-              <span className="w-5 h-5 rounded-full bg-jardin-orange text-white text-xs font-bold flex items-center justify-center animate-pulse">
-                {itemCount}
-              </span>
-            )}
-          </button>
+            <Phone className="w-5 h-5 text-jardin-orange group-hover:scale-110 transition" />
+            <span className="hidden sm:inline font-medium text-sm">Appeler</span>
+          </a>
         </div>
       </div>
     </header>

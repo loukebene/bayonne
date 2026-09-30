@@ -2,9 +2,9 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
-import { X, Plus, Minus, ShoppingBag, Star, Sparkles, Check } from "lucide-react";
-import { useCart } from "@/store/cartContext";
+import { X, Plus, Minus, ShoppingBag, Star, Sparkles, Check, MessageCircle } from "lucide-react";
 import { Dish } from "./DishCard";
+import { buildWhatsAppOrderLink } from "@/lib/whatsapp";
 
 interface DishModalProps {
   dish: Dish;
@@ -12,23 +12,20 @@ interface DishModalProps {
 }
 
 export const DishModal: React.FC<DishModalProps> = ({ dish, onClose }) => {
-  const { addItem } = useCart();
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
 
   const handleAdd = () => {
-    addItem(
+    const link = buildWhatsAppOrderLink([
       {
-        id: dish.id,
         name: dish.name,
+        quantity,
         price: dish.price,
-        imageUrl: dish.imageUrl,
-        isVariablePrice: dish.isVariablePrice,
-        priceNote: dish.priceNote,
+        note: dish.priceNote,
       },
-      quantity
-    );
+    ]);
     setAdded(true);
+    window.open(link, "_blank", "noopener,noreferrer");
     setTimeout(() => {
       setAdded(false);
       onClose();
@@ -74,7 +71,7 @@ export const DishModal: React.FC<DishModalProps> = ({ dish, onClose }) => {
               {dish.name}
             </h2>
             <p className="text-gray-300 text-sm sm:text-base leading-relaxed mt-3">
-              {dish.description}
+              {dish.description ?? "Aucune description disponible."}
             </p>
           </div>
 
@@ -128,13 +125,13 @@ export const DishModal: React.FC<DishModalProps> = ({ dish, onClose }) => {
               {added ? (
                 <>
                   <Check className="w-5 h-5" />
-                  <span>Ajouté au panier !</span>
+                  <span>Commande envoyée !</span>
                 </>
               ) : (
                 <>
-                  <ShoppingBag className="w-5 h-5" />
+                  <MessageCircle className="w-5 h-5" />
                   <span>
-                    Ajouter au panier ({(dish.price * quantity).toLocaleString("fr-FR")} FCFA)
+                    Commander par WhatsApp ({(dish.price * quantity).toLocaleString("fr-FR")} FCFA)
                   </span>
                 </>
               )}

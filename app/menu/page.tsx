@@ -1,19 +1,8 @@
 import React from "react";
-import { prisma } from "@/lib/prisma";
+import { categories, dishes } from "@/lib/menu";
 import { MenuClient } from "./MenuClient";
 
-export const revalidate = 0;
-
-export default async function MenuPage() {
-  const categories = await prisma.category.findMany({
-    orderBy: { orderIndex: "asc" },
-  });
-
-  const dishes = await prisma.dish.findMany({
-    include: { category: true },
-    orderBy: { name: "asc" },
-  });
-
+export default function MenuPage() {
   return (
     <div className="py-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
       {/* Header Banner */}

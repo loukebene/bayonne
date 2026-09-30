@@ -13,11 +13,10 @@ export default function TraiteurPage() {
   const [estimatedBudget, setEstimatedBudget] = useState("500000");
   const [message, setMessage] = useState("");
 
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [createdQuote, setCreatedQuote] = useState<any>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!customerName.trim()) {
       setError("Veuillez remplir votre nom complet.");
@@ -33,49 +32,35 @@ export default function TraiteurPage() {
     }
 
     setError("");
-    setLoading(true);
+    const quote = {
+      customerName: customerName.trim(),
+      customerPhone: customerPhone.trim(),
+      eventType,
+      eventDate,
+      guestCount,
+      estimatedBudget,
+      message: message.trim(),
+    };
+    const budget = Number(quote.estimatedBudget);
+    const msg = `*DEMANDE DE DEVIS SERVICE TRAITEUR*\n*Client :* ${quote.customerName}\n*Tél :* ${quote.customerPhone}\n*Événement :* ${quote.eventType}\n*Date :* ${quote.eventDate}\n*Nombre d'invités :* ${quote.guestCount} personnes\n*Budget estimé :* ${budget > 0 ? `${budget.toLocaleString("fr-FR")} FCFA` : "Non précisé"}${quote.message ? `\n*Détails / souhaits :* ${quote.message}` : ""}\n\nMerci de me contacter pour établir une proposition.`;
 
-    try {
-      const res = await fetch("/api/catering", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          customerName,
-          customerPhone,
-          eventType,
-          eventDate,
-          guestCount,
-          estimatedBudget,
-          message,
-        }),
-      });
-
-      if (!res.ok) {
-        throw new Error("Erreur lors de la soumission de la demande de devis.");
-      }
-
-      const data = await res.json();
-      setCreatedQuote(data);
-    } catch (err: any) {
-      setError(err.message || "Erreur lors de la demande de devis.");
-    } finally {
-      setLoading(false);
-    }
+    setCreatedQuote(quote);
+    window.open(`https://wa.me/242055245386?text=${encodeURIComponent(msg)}`, "_blank", "noopener,noreferrer");
   };
 
   const getWhatsAppUrl = () => {
     if (!createdQuote) return "#";
-    const msg = `*DEMANDE DE DEVIS SERVICE TRAITEUR* 🎉
-*Réf:* #${createdQuote.quoteNumber}
-*Client:* ${createdQuote.customerName}
-*Tél:* ${createdQuote.customerPhone}
-*Événement:* ${createdQuote.eventType}
-*Date:* ${createdQuote.eventDate}
-*Nombre d'invités:* ${createdQuote.guestCount} personnes
-*Budget estimé:* ${Number(createdQuote.estimatedBudget).toLocaleString("fr-FR")} FCFA
-${createdQuote.message ? `*Détails:* ${createdQuote.message}` : ""}
+    const budget = Number(createdQuote.estimatedBudget);
+    const msg = `*DEMANDE DE DEVIS SERVICE TRAITEUR*
+*Client :* ${createdQuote.customerName}
+*Tél :* ${createdQuote.customerPhone}
+*Événement :* ${createdQuote.eventType}
+*Date :* ${createdQuote.eventDate}
+*Nombre d'invités :* ${createdQuote.guestCount} personnes
+*Budget estimé :* ${budget > 0 ? `${budget.toLocaleString("fr-FR")} FCFA` : "Non précisé"}
+${createdQuote.message ? `*Détails / souhaits :* ${createdQuote.message}` : ""}
 
-_Merci de me contacter pour établir la proposition complète !_`;
+Merci de me contacter pour établir une proposition.`;
 
     return `https://wa.me/242055245386?text=${encodeURIComponent(msg)}`;
   };
@@ -129,15 +114,15 @@ _Merci de me contacter pour établir la proposition complète !_`;
 
             <div className="space-y-2">
               <h2 className="text-2xl font-bold text-white">
-                Demande de Devis Transmise !
+                Demande prête pour WhatsApp
               </h2>
               <p className="text-sm text-gray-300">
-                Numéro de dossier : <span className="font-mono font-bold text-jardin-orange">#{createdQuote.quoteNumber}</span>
+                Votre demande est prête à être envoyée au restaurant sur WhatsApp.
               </p>
             </div>
 
             <p className="text-xs sm:text-sm text-gray-300 max-w-md mx-auto leading-relaxed">
-              Notre chef traiteur étudie votre demande pour l&apos;événement <strong className="text-white">{createdQuote.eventType}</strong> du <strong className="text-white">{createdQuote.eventDate}</strong>.
+                Pensez à appuyer sur « Envoyer » dans WhatsApp pour transmettre votre demande de devis pour <strong className="text-white">{createdQuote.eventType}</strong>, le <strong className="text-white">{createdQuote.eventDate}</strong>.
             </p>
 
             <div className="pt-4 flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto">
@@ -148,7 +133,7 @@ _Merci de me contacter pour établir la proposition complète !_`;
                 className="py-3.5 px-6 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/30 transition"
               >
                 <MessageCircle className="w-5 h-5" />
-                <span>Finaliser la demande sur WhatsApp (+242 05 524 53 86)</span>
+                <span>Ouvrir / renvoyer sur WhatsApp (+242 05 524 53 86)</span>
               </a>
 
               <button
@@ -296,10 +281,9 @@ _Merci de me contacter pour établir la proposition complète !_`;
 
             <button
               type="submit"
-              disabled={loading}
               className="w-full py-4 rounded-2xl bg-gradient-to-r from-jardin-orange to-amber-600 hover:from-jardin-orange-hover hover:to-amber-500 text-white font-extrabold text-base flex items-center justify-center gap-2 shadow-xl shadow-jardin-orange/30 transition disabled:opacity-50"
             >
-              {loading ? "Traitement de votre demande..." : "Envoyer la demande de devis traiteur"}
+              Envoyer la demande sur WhatsApp
             </button>
           </form>
         )}

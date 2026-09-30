@@ -136,11 +136,6 @@ export const Footer: React.FC = () => {
           <p>© {new Date().getFullYear()} LE JARDIN DE BAYONNE. Tous droits réservés.</p>
           <div className="flex items-center gap-4">
             <span>Pointe-Noire, République du Congo</span>
-            <span>•</span>
-            <Link href="/admin/login" className="hover:text-jardin-orange flex items-center gap-1">
-              <ShieldCheck className="w-3.5 h-3.5" />
-              Administration
-            </Link>
           </div>
         </div>
       </div>

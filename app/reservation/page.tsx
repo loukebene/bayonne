@@ -10,11 +10,10 @@ export default function ReservationPage() {
   const [timeSlot, setTimeSlot] = useState("19:30");
   const [guestCount, setGuestCount] = useState(2);
   const [comment, setComment] = useState("");
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [createdReservation, setCreatedReservation] = useState<any>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!customerName.trim()) {
       setError("Veuillez remplir votre nom complet.");
@@ -30,33 +29,15 @@ export default function ReservationPage() {
     }
 
     setError("");
-    setLoading(true);
-
-    try {
-      const res = await fetch("/api/reservations", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          customerName,
-          customerPhone,
-          date,
-          timeSlot,
-          guestCount,
-          comment,
-        }),
-      });
-
-      if (!res.ok) {
-        throw new Error("Erreur lors de la réservation.");
-      }
-
-      const data = await res.json();
-      setCreatedReservation(data);
-    } catch (err: any) {
-      setError(err.message || "Erreur lors de l'enregistrement de la réservation.");
-    } finally {
-      setLoading(false);
-    }
+    setCreatedReservation({
+      resNumber: `RES-${Date.now().toString().slice(-6)}`,
+      customerName: customerName.trim(),
+      customerPhone: customerPhone.trim(),
+      date,
+      timeSlot,
+      guestCount,
+      comment: comment.trim(),
+    });
   };
 
   const getWhatsAppUrl = () => {
@@ -97,10 +78,10 @@ _Merci de confirmer notre table !_`;
 
           <div className="space-y-2">
             <h2 className="text-2xl font-bold text-white">
-              Votre Réservation est Enregistrée !
+              Votre demande est prête
             </h2>
             <p className="text-sm text-gray-300">
-              Référence : <span className="font-mono font-bold text-jardin-orange">#{createdReservation.resNumber}</span>
+                Référence : <span className="font-mono font-bold text-jardin-orange">#{createdReservation.resNumber}</span> · Confirmez sur WhatsApp.
             </p>
           </div>
 
@@ -273,10 +254,9 @@ _Merci de confirmer notre table !_`;
 
           <button
             type="submit"
-            disabled={loading}
             className="w-full py-4 rounded-2xl bg-gradient-to-r from-jardin-orange to-amber-600 hover:from-jardin-orange-hover hover:to-amber-500 text-white font-extrabold text-base flex items-center justify-center gap-2 shadow-xl shadow-jardin-orange/30 transition disabled:opacity-50"
           >
-            {loading ? "Enregistrement en cours..." : "Valider la réservation de table"}
+            Préparer la demande de réservation
           </button>
         </form>
       )}

@@ -14,7 +14,7 @@ interface Dish {
   id: string;
   name: string;
   slug: string;
-  description: string;
+  description: string | null;
   price: number;
   isVariablePrice: boolean;
   priceNote: string | null;
@@ -70,7 +70,7 @@ export const AdminMenuClient: React.FC<AdminMenuClientProps> = ({
     setEditingDish(dish);
     setName(dish.name);
     setCategoryId(dish.categoryId);
-    setDescription(dish.description);
+    setDescription(dish.description ?? "");
     setPrice(dish.price);
     setIsVariablePrice(dish.isVariablePrice);
     setPriceNote(dish.priceNote || "");
@@ -154,7 +154,10 @@ export const AdminMenuClient: React.FC<AdminMenuClientProps> = ({
   const filteredDishes = dishes.filter((d) => {
     const matchesCat = selectedCategory === "all" || d.categoryId === selectedCategory;
     const q = searchQuery.toLowerCase().trim();
-    const matchesQuery = !q || d.name.toLowerCase().includes(q) || d.description.toLowerCase().includes(q);
+    const matchesQuery =
+      !q ||
+      d.name.toLowerCase().includes(q) ||
+      (d.description ?? "").toLowerCase().includes(q);
     return matchesCat && matchesQuery;
   });
 

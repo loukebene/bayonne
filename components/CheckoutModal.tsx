@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useState } from "react";
-import { X, CheckCircle2, MessageCircle, Phone, MapPin, Send, AlertCircle, ShoppingBag } from "lucide-react";
+import { X, MessageCircle, Phone, MapPin, Send, AlertCircle, ShoppingBag, CheckCircle2 } from "lucide-react";
 import { useCart } from "@/store/cartContext";
+import { buildWhatsAppOrderLink } from "@/lib/whatsapp";
 
 interface CheckoutModalProps {
   onClose: () => void;
@@ -17,7 +18,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ onClose }) => {
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [createdOrder, setCreatedOrder] = useState<any>(null);
+  const [submitted, setSubmitted] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,68 +38,26 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ onClose }) => {
     setError("");
     setLoading(true);
 
-    try {
-      const res = await fetch("/api/orders", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          customerName,
-          customerPhone,
-          deliveryType,
-          address: deliveryType === "LIVRAISON" ? address : undefined,
-          notes,
-          subtotal,
-          deliveryFee,
-          total,
-          items: items.map((i) => ({
-            dishId: i.id,
-            dishName: i.name,
-            unitPrice: i.price,
-            quantity: i.quantity,
-            totalPrice: i.price * i.quantity,
-          })),
-        }),
-      });
-
-      if (!res.ok) {
-        throw new Error("Erreur lors de la création de la commande.");
+    const link = buildWhatsAppOrderLink(
+      items.map((item) => ({
+        name: item.name,
+        quantity: item.quantity,
+        price: item.price,
+        note: item.priceNote,
+      })),
+      {
+        deliveryType,
+        customerName: customerName.trim(),
+        phone: customerPhone.trim(),
+        address: deliveryType === "LIVRAISON" ? address.trim() : "",
+        notes: notes.trim(),
       }
+    );
 
-      const orderData = await res.json();
-      setCreatedOrder(orderData);
-      clearCart();
-    } catch (err: any) {
-      setError(err.message || "Impossible d'enregistrer la commande.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Generate WhatsApp text message
-  const getWhatsAppUrl = () => {
-    if (!createdOrder) return "#";
-    const itemListStr = createdOrder.items
-      .map((i: any) => `• ${i.quantity}x ${i.dishName} (${(i.unitPrice * i.quantity).toLocaleString("fr-FR")} FCFA)`)
-      .join("\n");
-
-    const message = `*COMMANDE LE JARDIN DE BAYONNE* 🍽️
-*Réf:* #${createdOrder.orderNumber}
-*Client:* ${createdOrder.customerName}
-*Tél:* ${createdOrder.customerPhone}
-*Type:* ${createdOrder.deliveryType}
-${createdOrder.address ? `*Adresse:* ${createdOrder.address}\n` : ""}
----------------------------
-*DETAILS DE LA COMMANDE:*
-${itemListStr}
----------------------------
-*Sous-total:* ${createdOrder.subtotal.toLocaleString("fr-FR")} FCFA
-*Frais de livraison:* ${createdOrder.deliveryFee.toLocaleString("fr-FR")} FCFA
-*TOTAL A PAYER:* *${createdOrder.total.toLocaleString("fr-FR")} FCFA*
-${createdOrder.notes ? `\n*Note:* ${createdOrder.notes}` : ""}
-
-_Merci pour votre commande chez Le Jardin de Bayonne !_`;
-
-    return `https://wa.me/242055245386?text=${encodeURIComponent(message)}`;
+    setSubmitted(true);
+    clearCart();
+    setLoading(false);
+    window.open(link, "_blank", "noopener,noreferrer");
   };
 
   return (
@@ -112,18 +71,18 @@ _Merci pour votre commande chez Le Jardin de Bayonne !_`;
             </div>
             <div>
               <h3 className="text-base font-bold text-white">
-                {createdOrder ? "Confirmation de Commande" : "Valider votre commande"}
+                {submitted ? "Commande prête" : "Commander par WhatsApp ou appel"}
               </h3>
               <p className="text-xs text-gray-400">
-                {createdOrder
-                  ? `Commande n° #${createdOrder.orderNumber}`
+                {submitted
+                  ? "Votre demande est prête à être envoyée."
                   : `${items.length} articles • Total: ${total.toLocaleString("fr-FR")} FCFA`}
               </p>
             </div>
           </div>
           <button
             onClick={() => {
-              if (createdOrder) {
+              if (submitted) {
                 setIsCartOpen(false);
               }
               onClose();
@@ -135,7 +94,7 @@ _Merci pour votre commande chez Le Jardin de Bayonne !_`;
         </div>
 
         {/* Success Confirmation View */}
-        {createdOrder ? (
+        {submitted ? (
           <div className="p-6 text-center space-y-6">
             <div className="w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto border border-emerald-500/30">
               <CheckCircle2 className="w-10 h-10 animate-bounce" />
@@ -143,41 +102,44 @@ _Merci pour votre commande chez Le Jardin de Bayonne !_`;
 
             <div className="space-y-2">
               <h4 className="text-xl font-bold text-white">
-                Commande Enregistrée avec Succès !
+                Demande prête à être envoyée
               </h4>
               <p className="text-sm text-gray-300">
-                Merci <span className="font-semibold text-jardin-orange">{createdOrder.customerName}</span>. Votre commande <span className="font-mono font-bold text-white">#{createdOrder.orderNumber}</span> a bien été transmise à la cuisine du restaurant.
+                Votre commande a été préparée pour être envoyée par WhatsApp ou via un appel téléphonique.
               </p>
             </div>
 
-            {/* Receipt Card */}
-            <div className="bg-jardin-surface p-4 rounded-xl border border-jardin-border text-left space-y-2 text-xs">
-              <div className="flex justify-between text-gray-300 border-b border-jardin-border/50 pb-2 font-medium">
-                <span>Type de service</span>
-                <span className="text-jardin-orange font-bold uppercase">{createdOrder.deliveryType}</span>
-              </div>
-              {createdOrder.address && (
-                <div className="flex justify-between text-gray-300 border-b border-jardin-border/50 pb-2">
-                  <span>Adresse</span>
-                  <span className="text-white text-right max-w-[200px]">{createdOrder.address}</span>
-                </div>
-              )}
-              <div className="flex justify-between text-base font-bold text-white pt-1">
-                <span>Total à régler</span>
-                <span className="text-jardin-orange">{createdOrder.total.toLocaleString("fr-FR")} FCFA</span>
-              </div>
-            </div>
-
-            {/* Action Buttons */}
             <div className="space-y-3 pt-2">
               <a
-                href={getWhatsAppUrl()}
+                href={buildWhatsAppOrderLink(
+                  items.map((item) => ({
+                    name: item.name,
+                    quantity: item.quantity,
+                    price: item.price,
+                    note: item.priceNote,
+                  })),
+                  {
+                    deliveryType,
+                    customerName: customerName.trim(),
+                    phone: customerPhone.trim(),
+                    address: deliveryType === "LIVRAISON" ? address.trim() : "",
+                    notes: notes.trim(),
+                  }
+                )}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/30 transition"
               >
                 <MessageCircle className="w-5 h-5" />
-                <span>Envoyer la commande sur WhatsApp (+242 05 524 53 86)</span>
+                <span>Envoyer sur WhatsApp (+242 05 524 53 86)</span>
+              </a>
+
+              <a
+                href="tel:+242055245386"
+                className="w-full py-3 px-4 rounded-xl bg-jardin-surface hover:bg-jardin-card text-white font-medium text-sm flex items-center justify-center gap-2 border border-jardin-border transition"
+              >
+                <Phone className="w-5 h-5 text-jardin-orange" />
+                <span>Appeler le restaurant</span>
               </a>
 
               <button
